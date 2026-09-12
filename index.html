@@ -186,7 +186,7 @@
   /* ---------- General directory ---------- */
   .tier-general{background:var(--cream);}
   .tier-general .kicker{color:var(--ink-soft);}
-  .category-nav{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:40px;}
+  .category-nav{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:40px; scroll-margin-top:82px;}
   .category-nav button{
     font-size:13px; font-weight:500; padding:8px 15px; border-radius:999px;
     border:1.5px solid var(--border); background:#fff; color:var(--ink-soft); cursor:pointer;
@@ -194,7 +194,7 @@
   }
   .category-nav button:hover{border-color:var(--sage);}
   .category-nav button.active{background:var(--teal); border-color:var(--teal); color:#fff;}
-  .category-block{margin-bottom:36px;}
+  .category-block{margin-bottom:36px; scroll-margin-top:96px;}
   .category-block h3{
     font-size:19px; border-bottom:2px solid var(--sage); padding-bottom:8px; margin-bottom:14px;
     display:flex; align-items:center; gap:10px;
@@ -592,6 +592,17 @@ categoryNav.addEventListener('click', (e)=>{
   categoryNav.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   applyFilters(document.getElementById('searchInput').value);
+
+  // Collapsing the other categories shrinks the page height, so without
+  // this the browser keeps whatever scroll position you were already at
+  // — which can now be past the bottom of the (much shorter) selected
+  // category, making it look empty. Scroll to the top of that category
+  // (or back to the category nav itself for "All Categories") instead.
+  const cat = btn.dataset.cat;
+  const target = cat === 'all'
+    ? categoryNav
+    : document.querySelector(`.category-block[data-cat="${CSS.escape(cat)}"]`);
+  if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
 });
 
 // Unified search + category filter — applies across Founding Members,
