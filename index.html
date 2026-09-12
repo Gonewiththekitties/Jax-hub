@@ -78,7 +78,14 @@
     border:1px solid var(--border); border-radius:999px; padding:8px 18px;
     font-size:13px; color:var(--teal); font-weight:600; box-shadow:var(--shadow);
   }
-  .search-box{max-width:420px; margin:24px auto 0; display:flex; gap:8px;}
+  .search-box{max-width:420px; margin:24px auto 0; display:flex; flex-direction:column; gap:10px;}
+  .search-box .search-btn{
+    padding:12px 16px; border-radius:10px; border:none; background:var(--gold); color:#fff;
+    font-family:'Jost',sans-serif; font-size:15px; font-weight:600; cursor:pointer;
+    transition:opacity .15s ease;
+  }
+  .search-box .search-btn:hover{opacity:.88;}
+  .search-box .search-btn:active{opacity:.75;}
   .search-box input{
     flex:1; padding:12px 16px; border-radius:10px; border:1px solid var(--border);
     font-family:'Jost',sans-serif; font-size:16px; background:#fff; color:var(--ink);
@@ -115,6 +122,7 @@
     transform:rotate(var(--tilt, -1.2deg));
     transition:transform .2s ease, box-shadow .2s ease;
     overflow:hidden;
+    scroll-margin-top:82px;
   }
   .pin-card .card-photo{
     width:100%;
@@ -157,7 +165,7 @@
   .featured-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:18px;}
   .featured-card{
     background:#fff; border-radius:14px; padding:16px; display:flex; gap:14px; align-items:flex-start;
-    box-shadow:var(--shadow); border:1px solid var(--border);
+    box-shadow:var(--shadow); border:1px solid var(--border); scroll-margin-top:82px;
   }
   .featured-photo{
     width:54px; height:54px; border-radius:12px; flex-shrink:0;
@@ -202,6 +210,7 @@
   }
   table.listing td{padding:12px 14px; font-size:13.5px; border-top:1px solid var(--border); vertical-align:middle;}
   table.listing tr:hover td{background:#FBFAF4;}
+  table.listing tbody tr{scroll-margin-top:82px;}
   .listing a{font-weight:600;}
   .no-results{text-align:center; color:var(--ink-soft); padding:20px; font-size:14px; display:none;}
   .rating-cell{color:var(--gold); font-weight:600; font-size:12.5px; white-space:nowrap;}
@@ -261,7 +270,7 @@
       <div class="mark">JX</div>
       <div class="brand-text">
         <div class="name">Jacksonville Community Hub</div>
-        <div class="tag">by Bloom &amp; Grow Marketing</div>
+        <div class="tag">by <a href="https://bloomandgrowmarketing.com" target="_blank" rel="noopener" style="color:inherit; text-decoration:none;">Bloom &amp; Grow Marketing</a></div>
       </div>
     </div>
     <nav>
@@ -279,7 +288,8 @@
     <p>A directory built by a neighbor, for neighbors — real local businesses, worth knowing about.</p>
     <span class="pill" id="hero-pill"></span>
     <div class="search-box">
-      <input type="text" id="searchInput" placeholder="Search the full directory by name or category…">
+      <input type="text" id="searchInput" placeholder="Search the full directory by name or category…" autocomplete="off" autocorrect="off" enterkeyhint="search">
+      <button type="button" class="search-btn" id="searchBtn">🔍 Search</button>
     </div>
   </div>
 </section>
@@ -641,6 +651,21 @@ function applyFilters(qRaw){
   document.getElementById('noResults').style.display = anyVisibleAtAll ? 'none' : 'block';
 }
 
+// Finds the first visible business across all three tiers, in page
+// order, so search results scroll straight to an actual business —
+// not just the section heading above a wall of category chips.
+function scrollToFirstMatch(){
+  const candidates = [
+    ...foundingGrid.querySelectorAll('.pin-card'),
+    ...featuredGrid.querySelectorAll('.featured-card'),
+    ...document.querySelectorAll('.category-block tbody tr'),
+  ];
+  const firstMatch = candidates.find(el => el.style.display !== 'none');
+  if(firstMatch){
+    firstMatch.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
+
 let hasScrolledToResults = false;
 document.getElementById('searchInput').addEventListener('input', (e)=>{
   // Typing a search resets any active category filter back to "All
@@ -655,10 +680,30 @@ document.getElementById('searchInput').addEventListener('input', (e)=>{
   applyFilters(e.target.value);
   if(e.target.value.trim().length > 0 && !hasScrolledToResults){
     hasScrolledToResults = true;
-    document.getElementById('directory').scrollIntoView({behavior:'smooth', block:'start'});
+    scrollToFirstMatch();
   }
   if(e.target.value.trim().length === 0){
     hasScrolledToResults = false;
+  }
+});
+
+// Explicit "Search" button (and pressing Enter) — the filtering already
+// happens live as you type, but this gives a tangible, tappable
+// confirmation and always jumps straight to the first matching business.
+function runSearch(){
+  const input = document.getElementById('searchInput');
+  applyFilters(input.value);
+  if(input.value.trim().length > 0){
+    hasScrolledToResults = true;
+    scrollToFirstMatch();
+  }
+  input.blur(); // dismiss the mobile keyboard so results are visible immediately
+}
+document.getElementById('searchBtn').addEventListener('click', runSearch);
+document.getElementById('searchInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    runSearch();
   }
 });
 </script>
