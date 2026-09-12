@@ -643,6 +643,15 @@ function applyFilters(qRaw){
 
 let hasScrolledToResults = false;
 document.getElementById('searchInput').addEventListener('input', (e)=>{
+  // Typing a search resets any active category filter back to "All
+  // Categories" — otherwise a search combines with a leftover category
+  // pick and can silently show zero results.
+  const activeCat = categoryNav.querySelector('button.active')?.dataset.cat;
+  if(e.target.value.trim().length > 0 && activeCat && activeCat !== 'all'){
+    categoryNav.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    categoryNav.querySelector('button[data-cat="all"]').classList.add('active');
+  }
+
   applyFilters(e.target.value);
   if(e.target.value.trim().length > 0 && !hasScrolledToResults){
     hasScrolledToResults = true;
